@@ -1,21 +1,24 @@
 import { Request, Response } from "express";
 import { T } from "../libs/types/common";
 import MemberService from "../models/Member.service";
+import ProductService from "../models/Product.service";
 import { AdminRequest, LoginInput, MemberInput } from "../libs/types/member";
 import { MemberType } from "../libs/enums/member.enum";
 import Errors, { HttpCode, Message } from "../libs/Errors";
 
 const memberService = new MemberService();
+const productService = new ProductService();
 
 // Restaurant controller
 const restaurantController: T = {};
 
 // Restaurant controller objectining goHome metodini yaratamiz va unda req va res parametrlarini mavjud qilamiz. Bu metod foydalanuvchini home sahifasiga yo'naltirish uchun ishlatiladi.
-restaurantController.goHome = (req: Request, res: Response) => {
+restaurantController.goHome = async (req: Request, res: Response) => {
   try {
-    console.log("goHome");
+    // Dashboarddagi "Products" statistikasini haqiqiy son bilan ko'rsatish uchun mahsulotlar sonini olamiz.
+    const products = await productService.getAllProducts();
     // home sahifasini render qilish uchun res.render metodidan foydalanamiz. Bu metod home nomli view faylini topib, uni foydalanuvchiga ko'rsatadi.
-    res.render("home");
+    res.render("home", { productCount: products.length });
     //send | json | redirect | end | render
   } catch (err) {
     console.log("Error, goHome", err);
@@ -26,7 +29,6 @@ restaurantController.goHome = (req: Request, res: Response) => {
 
 restaurantController.getLogin = (req: Request, res: Response) => {
   try {
-    console.log("getLogin");
     res.render("login");
   } catch (err) {
     console.log("Error, getLogin", err);
@@ -36,7 +38,6 @@ restaurantController.getLogin = (req: Request, res: Response) => {
 
 restaurantController.getSignup = (req: Request, res: Response) => {
   try {
-    console.log("getSignup");
     res.render("signup");
   } catch (err) {
     console.log("Error, getSignup", err);
@@ -52,7 +53,6 @@ restaurantController.processSignup = async (
   res: Response,
 ) => {
   try {
-    console.log("processSignup");
     // req.file orqali foydalanuvchi tomonidan yuklangan faylni olishga harakat qilamiz. Agar fayl mavjud bo'lmasa, xatolik yuz beradi va foydalanuvchiga xabar beriladi.
     const file = req.file;
     if (!file)
@@ -88,7 +88,6 @@ restaurantController.processLogin = async (
   res: Response,
 ) => {
   try {
-    console.log("processLogin");
     const input: LoginInput = req.body;
     const result = await memberService.processLogin(input);
 
@@ -109,7 +108,6 @@ restaurantController.processLogin = async (
 
 restaurantController.logout = async (req: AdminRequest, res: Response) => {
   try {
-    console.log("processLogin");
     req.session.destroy(function (err) {
       res.redirect("/admin");
     });
@@ -121,7 +119,6 @@ restaurantController.logout = async (req: AdminRequest, res: Response) => {
 
 restaurantController.getUsers = async (req: Request, res: Response) => {
   try {
-    console.log("getUsers");
     const result = await memberService.getUsers();
 
     res.render("users", { users: result });
@@ -133,7 +130,6 @@ restaurantController.getUsers = async (req: Request, res: Response) => {
 
 restaurantController.updateChosenUser = async (req: Request, res: Response) => {
   try {
-    console.log("updateChosenUser");
     const result = await memberService.updateChosenUser(req.body);
 
     res.status(HttpCode.OK).json({ data: result });
@@ -150,7 +146,6 @@ restaurantController.checkAuthSession = async (
   res: Response,
 ) => {
   try {
-    console.log("checkAuthSession");
 
     if (req.session.member)
       res.send(
