@@ -4,3 +4,7 @@ dist
 .env
 
 uploads
+
+.DS_Store
+**/.DS_Store
+*.log
