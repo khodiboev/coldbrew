@@ -23,11 +23,10 @@ class MemberService {
   public async getRestaurant(): Promise<Member> {
     // memberModel ning findOne methodini chaqirish orqali memberTypei RESTAURANT ga teng bo'lgan member ni topish. Natijani result o'zgaruvchisiga saqlash. Agar result topilmasa, HttpCode.NOT_FOUND va Message.NO_DATA_FOUND bilan yangi Errors ni throw qilish. Bu yerda RESTAURANT tipidagi member faqat bitta bo'lishi mumkinligi tekshirilmoqda.
     const result = await this.memberModel
-      .findOne({ MemberType: MemberType.RESTAURANT })
+      .findOne({ memberType: MemberType.RESTAURANT })
       // lean() methodi Mongoose document ni oddiy JavaScript object ga aylantiradi. Bu, agar sizga Mongoose document ning metodlari yoki virtuals kerak bo'lmasa, performansni yaxshilash uchun foydalidir.
       .lean()
       .exec();
-    result.target = "Test";
     if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
 
     return result;
@@ -95,22 +94,25 @@ class MemberService {
   }
 
   // Define: memberService objectining updateMember methodi, member va input parametrlari mavjud. Member tipida bo'lgan member ni update qilish uchun MemberUpdateInput tipida bo'lgan input ni qabul qiladi va natijada yangilangan Member ni qaytaradi.
-  public async updateMember(
-    member: Member,
-    input: MemberUpdateInput,
-  ): Promise<Member> {
-    // shapeIntoMongooseObjectId yordamida member._id ni Mongoose ObjectId formatiga o'zgartirish va memberId o'zgaruvchisiga saqlash. Bu yerda member._id aslida string formatida bo'lishi mumkin, lekin Mongoose bilan ishlash uchun uni ObjectId formatiga o'tkazish kerak.
-    const memberId = shapeIntoMongooseObjectId(member._id);
-    // member skima Model ning findOneAndUpdate methodini chaqirish orqali memberId ga mos keladigan member ni input bilan update qilish. {new: true} optioni update qilingan document ni qaytaradi. Natijani result o'zgaruvchisiga saqlash.
-    const result = await this.memberModel
-      .findOneAndUpdate({ _id: memberId }, input, { new: true })
-      .exec();
+public async updateMember(
+  member: Member,
+  input: MemberUpdateInput,
+): Promise<Member> {
+  const memberId = shapeIntoMongooseObjectId(member._id);
 
-    // Agar result topilmasa va error throw bolsa, return resultga borib otirmaydi va controllerdagi catch blokga otadi.
-    if (!result) throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
-
-    return result;
+  // ✅ memberImage kelmagan bo'lsa — inputdan o'chirib tashlaymiz
+  if (!input.memberImage) {
+    delete input.memberImage;
   }
+
+  const result = await this.memberModel
+    .findOneAndUpdate({ _id: memberId }, input, { new: true })
+    .exec();
+
+  if (!result) throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
+
+  return result;
+}
 
   // memberService objectining getTopUsers methodi, top users ni olish uchun ishlatiladi va natijada Member array ni qaytaradi. Bu method memberStatusi ACTIVE ga teng bo'lgan va memberPointsi 1 yoki undan katta bo'lgan memberlarni memberPoints bo'yicha kamayish tartibida sort qiladi va faqat 4 ta natija qaytaradi.
   public async getTopUsers(): Promise<Member[]> {
@@ -155,10 +157,8 @@ class MemberService {
       .exec();
     if (exist) throw new Errors(HttpCode.BAD_REQUEST, Message.CREATE_FAILED);
 
-    console.log("before:", input.memberPassword);
     const salt = await bcrypt.genSalt();
     input.memberPassword = await bcrypt.hash(input.memberPassword, salt);
-    console.log("after:", input.memberPassword);
 
     try {
       const result = await this.memberModel.create(input);

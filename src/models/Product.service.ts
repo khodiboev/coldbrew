@@ -26,12 +26,9 @@ class ProductService {
   }
 
   /** SPA */
-
-  // getproducts asinxron objectini, typei product bo'gan array qaytaradi
   public async getProducts(inquiry: ProductInquiry): Promise<Product[]> {
     const match: T = { productStatus: ProductStatus.PROCESS };
 
-    // productCollection va search query parametrlari mavjud bo'lsa, match objectiga ularni qo'shish. Bu match objecti MongoDB aggregate pipeline da $match stage uchun ishlatiladi.
     if (inquiry.productCollection)
       match.productCollection = inquiry.productCollection;
 
@@ -39,19 +36,32 @@ class ProductService {
       match.productName = { $regex: new RegExp(inquiry.search, "i") };
     }
 
-    // order query parametri bo'yicha sort qilish. Agar order "productPrice" bo'lsa, sort 1 (o'sish tartibi) bo'ladi, aks holda -1 (kamayish tartibi) bo'ladi. Bu sort objecti MongoDB aggregate pipeline da $sort stage uchun ishlatiladi.
-    const sort: T =
-      inquiry.order === "productPrice"
-        ? { [inquiry.order]: 1 }
-        : { [inquiry.order]: -1 };
+    // Low Price → productPrice ASC (+1)
+    // High Price → productPrice DESC (-1)
+    // Others (createdAt, productViews) → DESC (-1)
+    let sortField = inquiry.order;
+    let sortDir = -1;
 
-    // MongoDB aggregate pipeline ni ishlatish. $match stage da match objecti, $sort stage da sort objecti, $skip stage da pagination uchun kerakli miqdorda hujjatlarni o'tkazib yuborish, $limit stage da esa kerakli miqdorda hujjatlarni olish.
+    if (inquiry.order === "productPrice_asc") {
+      sortField = "productPrice";
+      sortDir = 1;
+    } else if (inquiry.order === "productPrice_desc") {
+      sortField = "productPrice";
+      sortDir = -1;
+    }
+
+    const sort: T = { [sortField]: sortDir };
+
+    // page/limit query orqali kelgani uchun ular chegaralanadi (manfiy/juda katta qiymatlardan himoya)
+    const safePage = Math.max(1, Math.floor(inquiry.page) || 1);
+    const safeLimit = Math.min(100, Math.max(1, Math.floor(inquiry.limit) || 10));
+
     const result = await this.productModel
       .aggregate([
         { $match: match },
         { $sort: sort },
-        { $skip: (inquiry.page * 1 - 1) * inquiry.limit },
-        { $limit: inquiry.limit * 1 },
+        { $skip: (safePage - 1) * safeLimit },
+        { $limit: safeLimit },
       ])
       .exec();
 
@@ -59,7 +69,6 @@ class ProductService {
     return result;
   }
 
-  // getproduct asinxron objectini, typei product bo'lgan array qaytaradi. Agar memberId mavjud bo'lsa, productni olishdan oldin view loglarini tekshirish va yangilash amalga oshiriladi.
   public async getProduct(
     memberId: ObjectId | null,
     id: string,
@@ -71,7 +80,6 @@ class ProductService {
     if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
 
     if (memberId) {
-      // check existence
       const input: ViewInput = {
         memberId: memberId,
         viewGroup: ViewGroup.PRODUCT,
@@ -80,12 +88,8 @@ class ProductService {
 
       const existView = await this.viewService.checkViewExicistence(input);
 
-      console.log("existView", !!existView);
       if (!existView) {
-        // insert new view log
         await this.viewService.insertMemberView(input);
-
-        // increase counts
         result = await this.productModel
           .findByIdAndUpdate(
             productId,
@@ -100,16 +104,12 @@ class ProductService {
   }
 
   /** SSR */
-
-  // getallproducts asinxron objectini, typei product bo'gan array qaytaradi
   public async getAllProducts(): Promise<Product[]> {
     const result = await this.productModel.find().exec();
     if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
-
     return result;
   }
 
-  // getchosenproduct asinxron objectini, typei product bo'lgan array qaytaradi
   public async createNewProduct(input: ProductInput): Promise<Product> {
     try {
       return await this.productModel.create(input);
@@ -119,19 +119,16 @@ class ProductService {
     }
   }
 
-  // updatechosenproduct asinxron objectini id va input parametri bor va typei product bo'lgan array qaytaradi
   public async updateChosenProduct(
     id: string,
     input: ProductUpdateInput,
   ): Promise<Product> {
-    //string => ObjectId
     id = shapeIntoMongooseObjectId(id);
     const result = await this.productModel
       .findByIdAndUpdate({ _id: id }, input, { new: true })
       .exec();
 
     if (!result) throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
-
     return result;
   }
 }

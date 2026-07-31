@@ -46,7 +46,6 @@ class OrderService {
 
       // Yangi order yaratgandan so'ng, uning _id sini orderId deb saqlaymiz va recordOrderItem methodini chaqiramiz. Bu method order itemlarini record qilish uchun ishlatiladi. OrderId va inputni beramiz. input bu yerda - order itemlarini o'z ichiga olgan array.
       const orderId = newOrder._id;
-      console.log("orderId:", orderId);
       await this.recordOrderItem(orderId, input);
 
       return newOrder;
@@ -71,7 +70,6 @@ class OrderService {
 
     // Barcha itemlar record qilingandan so'ng, natijalarni konsolga chiqaramiz. Agar xatolik yuz bersa, uni konsolga chiqaramiz.
     const orderItemState = await Promise.all(promisedList);
-    console.log("orderItemState:", orderItemState);
   }
 
   // getMyOrders methodi, member va inquiry parametrlari qabul qiladi. Bu method userning o'z orderlarini olish uchun ishlatiladi. inquiry parametri, orderlarni filtrlash, sort qilish va pagination qilish uchun ishlatiladi.
@@ -82,13 +80,17 @@ class OrderService {
     const memberId = shapeIntoMongooseObjectId(member._id);
     const matches = { memberId: memberId, orderStatus: inquiry.orderStatus };
 
+    // page/limit ni chegaralaymiz (manfiy/juda katta qiymatlardan himoya)
+    const safePage = Math.max(1, Math.floor(inquiry.page) || 1);
+    const safeLimit = Math.min(100, Math.max(1, Math.floor(inquiry.limit) || 10));
+
     // orderModel.aggregate methodini chaqirib, orderlarni olish uchun aggregation pipeline ni ishlatamiz. Birinchi bosqichda, $match operatori orqali memberId va orderStatus ga mos keladigan orderlarni filtrlashni amalga oshiramiz. Keyin, $sort operatori orqali orderlarni createdAt maydoniga ko'ra kamayish tartibida tartiblaymiz.
     const result = await this.orderModel
       .aggregate([
         { $match: matches },
         { $sort: { createdAt: -1 } },
-        { $skip: (inquiry.page - 1) * inquiry.limit },
-        { $limit: inquiry.limit },
+        { $skip: (safePage - 1) * safeLimit },
+        { $limit: safeLimit },
         {
           // order itemlarini olish uchun $lookup operatorini ishlatamiz. Bu operator orderModel va orderItemModel o'rtasida join qilish imkonini beradi. localField va foreignField orqali bog'lanish maydonlarini belgilaymiz va natijani orderItems nomli maydonga saqlaymiz.
           $lookup: {

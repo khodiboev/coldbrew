@@ -13,16 +13,7 @@ const productController: T = {};
 /** SPA */
 productController.getProducts = async (req: Request, res: Response) => {
   try {
-    // query bu - URL da ? dan keyin yozilgan ma'lumotlarni olish uchun ishlatiladi. Masalan, agar URL "http://example.com/products?category=electronics" bo'lsa, req.query.category orqali "electronics" qiymatini olish mumkin.
-    // const query = req.query;
-    // console.log("req.query", query);
-
-    // params bu - URL da :key nomi bilan yozilgan ma'lumotlarni olish uchun ishlatiladi. Masalan, agar route "/product/:id" bo'lsa va URL "http://example.com/product/123" bo'lsa, req.params.id orqali "123" qiymatini olish mumkin.
-    // const params = req.params;
-    // console.log("req.params", params);
-
     // query dan page, limit, order, productCollection va search ni olish. inquiry objecti ProductInquiry typeiga ega bo'ladi va getProducts methodiga uzatiladi.
-    console.log("getProducts");
     const { page, limit, order, productCollection, search } = req.query;
     const inquiry: ProductInquiry = {
       order: String(order),
@@ -48,9 +39,7 @@ productController.getProducts = async (req: Request, res: Response) => {
 // getProduct methodi, req va res parametrlarini qabul qiladi. req.params.id orqali productId ni oladi va productService ning getProduct metodini chaqiradi va unga memberId (agar mavjud bo'lsa) va productId ni uzatadi. Agar ma'lumot muvaffaqiyatli olingan bo'lsa, natijani JSON formatida qaytaradi. Agar xatolik yuz bersa, xatolik xabarini qaytaradi.
 productController.getProduct = async (req: ExtendedRequest, res: Response) => {
   try {
-    console.log("getProduct");
     const { id } = req.params;
-    console.log("req.member", req.member);
     const memberId = req.member?._id ?? null,
       result = await productService.getProduct(memberId, id);
 
@@ -67,7 +56,6 @@ productController.getProduct = async (req: ExtendedRequest, res: Response) => {
 // productController objectining getAllProducts methodi, req va res parametrlarini qabul qiladi.
 productController.getAllProducts = async (req: Request, res: Response) => {
   try {
-    console.log("getAllProducts");
     const data = await productService.getAllProducts();
 
     // products nomli view ni render qiladi va unga data ni uzatadi.
@@ -85,9 +73,6 @@ productController.createNewProduct = async (
   res: Response,
 ) => {
   try {
-    console.log("createNewProduct");
-    console.log("req.body:", req.body);
-    console.log("req.files:", req.files);
 
     // Agar rasm yuklanmagan bo'lsa, xatolik xabarini qaytaradi.
     if (!req.files?.length)
@@ -108,7 +93,7 @@ productController.createNewProduct = async (
     console.log("Error, createNewProduct", err);
     const message =
       err instanceof Errors ? err.message : Message.SOMETHING_WENT_WRONG;
-    res.send(
+    res.status(HttpCode.INTERNAL_SERVER_ERROR).send(
       `<script>alert("${message}"); window.location.replace('/admin/product/all') </script>`,
     );
   }
@@ -118,7 +103,6 @@ productController.createNewProduct = async (
 productController.updateChosenProduct = async (req: Request, res: Response) => {
   try {
     // productId ni req.params.id dan oladi va productService ning updateChosenProduct metodini chaqiradi va unga productId va req.body ni uzatadi.
-    console.log("updateChosenProduct");
     const productId = req.params.id;
 
     const result = await productService.updateChosenProduct(
