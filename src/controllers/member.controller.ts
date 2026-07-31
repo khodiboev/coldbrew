@@ -4,13 +4,14 @@ import MemberService from "../models/Member.service";
 import {
   ExtendedRequest,
   LoginInput,
-  Member,
+  Member, 
   MemberInput,
   MemberUpdateInput,
 } from "../libs/types/member";
 import Errors, { HttpCode, Message } from "../libs/Errors";
 import AuthService from "../models/Auth.service";
 import { AUTH_TIMER } from "../libs/config";
+import { isProduction } from "../libs/env";
 
 const memberService = new MemberService();
 const authService = new AuthService();
@@ -21,7 +22,6 @@ const memberController: T = {};
 // memberController objectining getRestaurant methodi, req va res parametrlari mavjud. Bu method restaurant ni olish uchun ishlatiladi.
 memberController.getRestaurant = async (req: Request, res: Response) => {
   try {
-    console.log("getRestaurant");
     const result = await memberService.getRestaurant();
 
     res.status(HttpCode.OK).json(result)
@@ -37,7 +37,6 @@ memberController.getRestaurant = async (req: Request, res: Response) => {
 // memberController objectining asinxron signup methodi, req va res parametrlari mavjud.
 memberController.signup = async (req: Request, res: Response) => {
   try {
-    console.log("signup");
     // req.body dan MemberInput tipidagi inputni olish va memberService.signup methodini chaqirish orqali natijani olish.
     const input: MemberInput = req.body,
       // memberService objectining signup methodiga inputni pass qilib, yangi member yaratadi va natijani qaytaradi. Natija Member tipida bo'ladi.
@@ -45,10 +44,19 @@ memberController.signup = async (req: Request, res: Response) => {
     // authService objectining createToken methodiga resultni pass qilib, token yaratadi va natijani qaytaradi. Natija string tipida bo'ladi.
     const token = await authService.createToken(result);
 
-    // Natijani cookie sifatida "accessToken" nomi bilan saqlash, cookie ning maxAge ni AUTH_TIMER * 3600 * 1000 ga o'rnatish va httpOnly ni false qilish. hhtpOnly bu cookie faqat server tomonidan o'qilishi mumkinligini bildiradi, lekin bu yerda false qilib qo'yilgan, ya'ni client tomonidan ham o'qilishi mumkin.
+    // accessToken endi httpOnly - client-side JS o'qiy olmaydi (XSS orqali o'g'irlanishning oldi olinadi).
+    // Frontend UI faqat "kirilganmi yo'qmi"ni bilishi uchun alohida, sezgir bo'lmagan "loggedIn" cookie qo'yiladi.
     res.cookie("accessToken", token, {
       maxAge: AUTH_TIMER * 3600 * 1000,
+      httpOnly: true,
+      secure: isProduction(),
+      sameSite: isProduction() ? "strict" : "lax",
+    });
+    res.cookie("loggedIn", "1", {
+      maxAge: AUTH_TIMER * 3600 * 1000,
       httpOnly: false,
+      secure: isProduction(),
+      sameSite: isProduction() ? "strict" : "lax",
     });
 
     res.status(HttpCode.CREATED).json({ member: result, accessToken: token });
@@ -64,7 +72,6 @@ memberController.signup = async (req: Request, res: Response) => {
 
 memberController.login = async (req: Request, res: Response) => {
   try {
-    console.log("login");
 
     const input: LoginInput = req.body,
       result = await memberService.login(input),
@@ -72,7 +79,15 @@ memberController.login = async (req: Request, res: Response) => {
 
     res.cookie("accessToken", token, {
       maxAge: AUTH_TIMER * 3600 * 1000,
+      httpOnly: true,
+      secure: isProduction(),
+      sameSite: isProduction() ? "strict" : "lax",
+    });
+    res.cookie("loggedIn", "1", {
+      maxAge: AUTH_TIMER * 3600 * 1000,
       httpOnly: false,
+      secure: isProduction(),
+      sameSite: isProduction() ? "strict" : "lax",
     });
 
     res.status(HttpCode.OK).json({ member: result, accessToken: token });
@@ -89,9 +104,9 @@ memberController.login = async (req: Request, res: Response) => {
 // memberController objectining logout methodi, req va res parametrlari mavjud.
 memberController.logout = (req: ExtendedRequest, res: Response) => {
   try {
-    console.log("logout");
-    // "accessToken" nomi bilan cookie ni null qilib, maxAge ni 0 ga o'rnatish orqali cookie ni o'chirish.
+    // "accessToken" va "loggedIn" cookielarni maxAge ni 0 ga o'rnatish orqali o'chirish.
     res.cookie("accessToken", null, { maxAge: 0, httpOnly: true });
+    res.cookie("loggedIn", null, { maxAge: 0, httpOnly: false });
     res.status(HttpCode.OK).json({ logout: true });
   } catch (err) {
     console.log("Error, logout:", err);
@@ -108,7 +123,6 @@ memberController.getMemberDetail = async (
   res: Response,
 ) => {
   try {
-    console.log("getMemberDetail");
     // memberService objectining getMemberDetail methodiga req.member ni pass qilib, member detailini olish va natijani qaytarish. Natija Member tipida bo'ladi.
     const result = await memberService.getMemberDetail(req.member);
     res.status(HttpCode.OK).json(result);
@@ -124,7 +138,6 @@ memberController.getMemberDetail = async (
 // memberController objectining updateMember methodi, req va res parametrlari mavjud. Nima uchun req ExtendedRequest tipida - chunki member.ts fileda Requestdan interface olganmiz va unda user bitta file yoki birnechta files kiritganini tekshirish uchun.
 memberController.updateMember = async (req: ExtendedRequest, res: Response) => {
   try {
-    console.log("updateMember");
     // postman orqali yuborilgan form-data req.body qismida kirib keladi va uni MemberUpdateInput tipidagi input o'zgaruvchisiga saqlash.
     const input: MemberUpdateInput = req.body;
     // Agar req.file mavjud bo'lsa, input.memberImage ni req.file.path ga o'rnatish. Bu yerda req.file multer middleware tomonidan yaratilgan file obyekti bo'lib, uning path property si file ning saqlangan joyini ko'rsatadi.
@@ -145,7 +158,6 @@ memberController.updateMember = async (req: ExtendedRequest, res: Response) => {
 // memberController objectining getTopUsers asinxron methodi, req va res parametrlari mavjud. Bu method top users ni olish uchun ishlatiladi.
 memberController.getTopUsers = async (req: Request, res: Response) => {
   try {
-    console.log("getTopUsers");
     // Call: memberService objectining getTopUsers methodini chaqirish orqali top users ni olish va natijani qaytarish.
     const result = await memberService.getTopUsers();
 

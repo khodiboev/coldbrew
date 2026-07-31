@@ -5,7 +5,10 @@ import router from "./router";
 import routerAdmin from "./router-admin";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { MORGAN_FORMAT } from "./libs/config";
+import { isProduction, getAllowedOrigins } from "./libs/env";
 
 import session from "express-session";
 import ConnectMongoDB from "connect-mongodb-session";
@@ -23,19 +26,50 @@ const store = new MongoDBStore({
 /**1-Entrance**/
 // Express app ni yaratish va kerakli middleware larni o'rnatish. express.static middleware yordamida public papkasini statik fayllar uchun ishlatish va uploads papkasini rasm fayllari uchun ishlatish. express.urlencoded va express.json middleware larini o'rnatish, bu middleware lar incoming request body ni req.body ga parse qiladi. cookieParser middleware ni o'rnatish, bu middleware cookies ni parse qiladi va req.cookies ga qo'shadi. morgan middleware ni o'rnatish, bu middleware HTTP requestlarni log qiladi va MORGAN_FORMAT formatida loglarni chiqaradi.
 const app = express();
-console.log("__dirname", __dirname);
+
+// Xavfsizlik headerlari (CSP EJS/inline script ishlatgani uchun bo'shatilgan - kerak bo'lsa keyinchalik qattiqlashtiriladi).
+// crossOriginResourcePolicy ham "cross-origin" ga o'rnatildi - aks holda helmet'ning standart
+// "same-origin" siyosati backend (masalan port 3003) dan boshqa origindagi frontend (port 3000)
+// rasm/uploads fayllarni <img>/CSS background-image orqali yuklashini brauzerda bloklab qo'yadi
+// (mahsulot rasmlari umuman ko'rinmay qolishiga sabab bo'lgan aynan shu edi).
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
+
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static("./uploads"));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
+
+// Production'da faqat ALLOWED_ORIGINS ro'yxatidagi manzillarga ruxsat beriladi.
+// Dev muhitida (ALLOWED_ORIGINS berilmagan bo'lsa) barcha originlarga ruxsat qoladi.
+const allowedOrigins = getAllowedOrigins();
 app.use(
   cors({
     credentials: true,
-    origin: true,
+    origin:
+      isProduction() && allowedOrigins.length > 0
+        ? allowedOrigins
+        : true,
   }),
 );
 app.use(cookieParser());
 app.use(morgan(MORGAN_FORMAT));
+
+// Login/signup kabi og'ir endpointlarga qo'pol kuch (brute-force) hujumidan himoya
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 daqiqa
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Juda ko'p urinish. Iltimos keyinroq qayta urinib ko'ring." },
+});
+app.use(["/member/login", "/member/signup", "/admin/login", "/admin/signup"], authLimiter);
+
+app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
 
 /**2-sessions**/
 // express-session middleware ni o'rnatish, bu middleware sessionlarni boshqarish uchun ishlatiladi. secret sifatida SESSION_SECRET environment variable dan olinadi, cookie ning maxAge ni 6 soatga o'rnatish, store sifatida oldin yaratgan MongoDBStore ni berish, resave va saveUninitialized optionlarini true ga o'rnatish. resave true bo'lsa, har bir request da session saqlanadi, saveUninitialized true bo'lsa, yangi yaratilgan lekin o'zgartirilmagan session ham saqlanadi.
@@ -44,6 +78,9 @@ app.use(
     secret: String(process.env.SESSION_SECRET),
     cookie: {
       maxAge: 1000 * 3600 * 6, //6h
+      httpOnly: true,
+      secure: isProduction(),
+      sameSite: isProduction() ? "strict" : "lax",
     },
     store: store,
     resave: true,
