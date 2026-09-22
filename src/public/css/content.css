@@ -1,0 +1,269 @@
+/* ============================================================
+   CONTENT MANAGEMENT PAGE (Terms & FAQ)
+   Reuses the ColdBrew admin palette: #1a1410 dark / #e8c97a gold
+   ============================================================ */
+
+.content-page-container {
+  min-height: 100vh;
+  background: #f6f3ee;
+  padding-bottom: 60px;
+}
+
+/* ── NAV (copied convention from products.css / users.css) ── */
+.content-page-container .navigation-menu {
+  background: #1a1410;
+  padding: 18px 0;
+}
+
+.content-page-container .navigation-menu .nav-link {
+  color: rgba(232, 201, 122, 0.65);
+  font-family: Poppins;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 18px;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+.content-page-container .navigation-menu .nav-link:hover,
+.content-page-container .navigation-menu .nav-link.active {
+  color: #e8c97a;
+}
+
+/* ── FRAME ── */
+.content-frame {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.content-frame .board {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── PAGE HEADER ── */
+.content-frame .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.content-frame .page-label {
+  color: #c8976e;
+  font-family: Poppins;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.content-frame .page-title {
+  color: #1a1410;
+  font-family: Poppins;
+  font-weight: 700;
+  font-size: 28px;
+}
+
+.content-frame .page-sub {
+  color: #8a7f74;
+  font-family: Poppins;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* ── CARD ── */
+.content-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(26, 20, 16, 0.06);
+}
+
+.content-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.content-card-title {
+  font-family: Poppins;
+  font-weight: 700;
+  font-size: 17px;
+  color: #1a1410;
+}
+
+.content-count {
+  font-family: Poppins;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c8976e;
+  background: rgba(232, 201, 122, 0.12);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ── LIST / ROWS ── */
+.content-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.content-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #faf8f5;
+  border: 1px solid rgba(26, 20, 16, 0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.content-row.faq-row {
+  align-items: flex-start;
+}
+
+.drag-order {
+  min-width: 22px;
+  text-align: center;
+  font-family: Poppins;
+  font-size: 11px;
+  font-weight: 700;
+  color: #c8976e;
+}
+
+.content-text-input,
+.content-textarea {
+  font-family: Poppins;
+  font-size: 14px;
+  color: #1a1410;
+  border: 1px solid rgba(26, 20, 16, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #ffffff;
+  width: 100%;
+}
+
+.content-text-input:focus,
+.content-textarea:focus {
+  outline: none;
+  border-color: #e8c97a;
+}
+
+.content-textarea {
+  resize: vertical;
+  min-height: 44px;
+  margin-top: 8px;
+}
+
+.faq-row-fields {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.content-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-row {
+  padding: 6px 12px;
+  font-family: Poppins;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-save-term,
+.btn-save-faq {
+  background: rgba(232, 201, 122, 0.12);
+  color: #c8976e;
+  border-color: rgba(200, 151, 110, 0.25);
+}
+
+.btn-save-term:hover,
+.btn-save-faq:hover {
+  background: #1a1410;
+  color: #e8c97a;
+  border-color: #1a1410;
+}
+
+.btn-delete-term,
+.btn-delete-faq {
+  background: rgba(200, 60, 60, 0.08);
+  color: #c83c3c;
+  border-color: rgba(200, 60, 60, 0.2);
+}
+
+.btn-delete-term:hover,
+.btn-delete-faq:hover {
+  background: #c83c3c;
+  color: #ffffff;
+  border-color: #c83c3c;
+}
+
+.content-empty {
+  font-family: Poppins;
+  font-size: 13px;
+  color: #8a7f74;
+  padding: 16px;
+  text-align: center;
+}
+
+/* ── ADD ROW ── */
+.content-add-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(26, 20, 16, 0.12);
+}
+
+.content-add-row.faq-add-row {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.content-add-row input,
+.content-add-row textarea {
+  font-family: Poppins;
+  font-size: 14px;
+  border: 1px solid rgba(26, 20, 16, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+  flex: 1;
+}
+
+.content-add-row textarea {
+  resize: vertical;
+  min-height: 44px;
+}
+
+.content-add-row .btn-add {
+  padding: 10px 18px;
+  background: #1a1410;
+  color: #e8c97a;
+  font-family: Poppins;
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.content-add-row .btn-add:hover {
+  background: #e8c97a;
+  color: #1a1410;
+}

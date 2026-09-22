@@ -9,7 +9,8 @@
     "build": "tsc && npm run copy:assets",
     "copy:assets": "mkdir -p dist/views dist/public && cp -r src/views/. dist/views/ && cp -r src/public/. dist/public/",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "seed:users": "ts-node src/seedUsers.ts"
+    "seed:users": "ts-node src/seedUsers.ts",
+    "seed:content": "ts-node src/seedContent.ts"
   },
   "author": "Victor",
   "license": "ISC",
@@ -30,6 +31,7 @@
     "mongoose": "^6.2.9",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.8.3",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -42,6 +44,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
+    "@types/socket.io": "^3.0.2",
     "@types/uuid": "^8.3.4",
     "nodemon": "^3.0.2",
     "ts-node": "^10.9.1",

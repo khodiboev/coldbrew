@@ -2,6 +2,7 @@ import express from "express";
 const routerAdmin = express.Router();
 import restaurantController from "./controllers/restaurant.controller";
 import productController from "./controllers/product.controller";
+import contentController from "./controllers/content.controller";
 import makeUploader from "./libs/utils/uploader";
 
 //*Restaurant*/
@@ -55,6 +56,50 @@ routerAdmin.post(
   "/user/edit",
   restaurantController.verifyRestaurant,
   restaurantController.updateChosenUser,
+);
+
+//*Content (Help page: Terms & FAQ)*/
+
+routerAdmin.get(
+  "/content",
+  restaurantController.verifyRestaurant,
+  contentController.getContentPage,
+);
+
+routerAdmin.post(
+  "/content/term/create",
+  restaurantController.verifyRestaurant,
+  contentController.createTerm,
+);
+
+routerAdmin.post(
+  "/content/term/:id/delete",
+  restaurantController.verifyRestaurant,
+  contentController.deleteTerm,
+);
+
+routerAdmin.post(
+  "/content/term/:id",
+  restaurantController.verifyRestaurant,
+  contentController.updateTerm,
+);
+
+routerAdmin.post(
+  "/content/faq/create",
+  restaurantController.verifyRestaurant,
+  contentController.createFaq,
+);
+
+routerAdmin.post(
+  "/content/faq/:id/delete",
+  restaurantController.verifyRestaurant,
+  contentController.deleteFaq,
+);
+
+routerAdmin.post(
+  "/content/faq/:id",
+  restaurantController.verifyRestaurant,
+  contentController.updateFaq,
 );
 
 export default routerAdmin;

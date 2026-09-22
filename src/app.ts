@@ -9,6 +9,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { MORGAN_FORMAT } from "./libs/config";
 import { isProduction, getAllowedOrigins } from "./libs/env";
+import { Server as SocketIOServer } from "socket.io";
+import http from "http";  
 
 import session from "express-session";
 import ConnectMongoDB from "connect-mongodb-session";
@@ -104,7 +106,26 @@ app.set("view engine", "ejs");
 app.use("/admin", routerAdmin); //SSR: EJS
 app.use("/", router); //SPA: REACT
 
-export default app;
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: true,
+    credentials: true,
+  },
+});
+
+let summaryClient = 0;
+io.on("connection", (socket) => {
+  summaryClient++;
+  console.log(`Total connected clients: [${summaryClient}]`);
+
+  socket.on("disconnect", () => {
+    summaryClient--;
+    console.log(`Total connected clients: [${summaryClient}]`);
+  });
+});
+
+export default server;
 
 /*
 BACKEND da oldi berdi Json formatda boladi

@@ -4,42 +4,51 @@
 
 <body>
   <div class="users-container">
+
     <% if(!member) { %>
+
     <div class="navigation-menu">
       <ul class="nav justify-content-center">
-        <li class="nav-item" style="cursor: pointer">
-          <a class="nav-link active" href="/admin/">Home</a>
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/">Home</a>
         </li>
-        <li class="nav-item" style="cursor: pointer">
+        <li class="nav-item">
           <a class="nav-link" href="/admin/signup">SignUp</a>
         </li>
-        <li class="nav-item" style="cursor: pointer">
+        <li class="nav-item">
           <a class="nav-link" href="/admin/login">Login</a>
         </li>
       </ul>
     </div>
 
-    <div class="users-frame" style="color: #dddddd">
-      <div class="board" style="font-size: 40px">Please login first!</div>
+    <div class="users-frame">
+      <div class="board">
+        <div class="empty-state">
+          <div class="empty-icon">🔒</div>
+          <div class="empty-title">Access Restricted</div>
+          <div class="empty-sub">Please login to view user management</div>
+          <a href="/admin/login" class="btn-login">Go to Login</a>
+        </div>
+      </div>
     </div>
 
     <% } else { %>
+
     <div class="navigation-menu">
       <ul class="nav justify-content-center">
-        <li class="nav-item" style="cursor: pointer">
-          <a class="nav-link active" href="/admin/">Home</a>
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/">Home</a>
         </li>
-        <li class="nav-item" style="cursor: pointer">
+        <li class="nav-item">
           <a class="nav-link" href="/admin/product/all">Menu</a>
         </li>
-        <li class="nav-item" style="cursor: pointer">
-          <a class="nav-link" href="/admin/user/all">Users</a>
+        <li class="nav-item">
+          <a class="nav-link active" href="/admin/user/all">Users</a>
         </li>
-        <li
-          class="nav-item"
-          style="cursor: pointer"
-          onclick="return confirm('Do you really want to logout?')"
-        >
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/content">Content</a>
+        </li>
+        <li class="nav-item" onclick="return confirm('Do you really want to logout?')">
           <a class="nav-link" href="/admin/logout">Logout</a>
         </li>
       </ul>
@@ -47,41 +56,104 @@
 
     <div class="users-frame">
       <div class="board">
+
+        <!-- Header -->
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-label">👥 User Management</div>
+            <div class="page-title">All Users</div>
+            <div class="page-sub">Manage and monitor registered members</div>
+          </div>
+          <div class="user-count-badge">
+            <span class="count-num"><%= users.length %></span>
+            <span class="count-label">Total Users</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="user-stats">
+          <div class="ustat-card">
+            <div class="ustat-icon">✅</div>
+            <div class="ustat-info">
+              <div class="ustat-num"><%= users.filter(u => u.memberStatus === 'ACTIVE').length %></div>
+              <div class="ustat-label">Active</div>
+            </div>
+          </div>
+          <div class="ustat-card">
+            <div class="ustat-icon">🚫</div>
+            <div class="ustat-info">
+              <div class="ustat-num"><%= users.filter(u => u.memberStatus === 'BLOCK').length %></div>
+              <div class="ustat-label">Blocked</div>
+            </div>
+          </div>
+          <div class="ustat-card">
+            <div class="ustat-icon">🗑️</div>
+            <div class="ustat-info">
+              <div class="ustat-num"><%= users.filter(u => u.memberStatus === 'DELETE').length %></div>
+              <div class="ustat-label">Deleted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
         <div class="user-table">
-          <span class="header-name" style="margin-bottom: 30px"
-            >All Users List</span
-          >
-          <table class="table table-hover table-sm">
-            <thead class="thead-light">
-              <tr class="thead-light">
-                <th scope="col">No</th>
-                <th scope="col">Name</th>
-                <th scope="col">Phone</th>
-                <th scope="col">Status</th>
+          <div class="table-header">
+            <span class="new-dish-txt">All Users</span>
+            <div class="table-controls">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input
+                  type="text"
+                  id="user-search"
+                  class="search-input"
+                  placeholder="Search by name or phone..."
+                />
+                <button class="search-clear" id="search-clear" style="display:none">✕</button>
+              </div>
+              <span class="users-count" id="users-count"><%= users.length %> users</span>
+            </div>
+          </div>
+
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Status</th>
               </tr>
             </thead>
-            <!--  LOOP PRODUCTS: START  -->
-
+            <tbody>
             <% users.map(function(value, index){ %>
-            <tbody style="background: white">
-              <td><%= index+1 %></td>
-              <td><%= value.memberNick %></td>
-              <td><%= value.memberPhone %></td>
-              <td style="width: 13%">
-                <select class="spec-select member-status" id="<%= value._id %>">
-                  <option value="ACTIVE" <%= value.memberStatus === 'ACTIVE' ? 'selected': '' %> >ACTIVE</option>
-                  <option value="BLOCK" <%= value.memberStatus === 'BLOCK' ? 'selected': '' %> >BLOCK</option>
-                  <option value="DELETE" <%= value.memberStatus === 'DELETE' ? 'selected': '' %> >DELETE</option>
-                </select>
-              </td>
-            </tbody>
+              <tr class="user-row">
+                <td><%= index + 1 %></td>
+                <td class="col-name">
+                  <div class="member-name"><%= value.memberNick %></div>
+                </td>
+                <td class="col-phone"><%= value.memberPhone %></td>
+                <td>
+                  <select class="spec-select member-status" id="<%= value._id %>">
+                    <option value="ACTIVE" <%= value.memberStatus === 'ACTIVE' ? 'selected' : '' %>>ACTIVE</option>
+                    <option value="BLOCK"  <%= value.memberStatus === 'BLOCK'  ? 'selected' : '' %>>BLOCK</option>
+                    <option value="DELETE" <%= value.memberStatus === 'DELETE' ? 'selected' : '' %>>DELETE</option>
+                  </select>
+                </td>
+              </tr>
             <% }) %>
-
-            <!--  LOOP PRODUCTS: END  -->
+            </tbody>
           </table>
+
+          <!-- No results -->
+          <div id="no-results" style="display:none">
+            <div class="no-results-icon">🔍</div>
+            <div class="no-results-text">No users found</div>
+            <div class="no-results-sub">Try a different name or phone number</div>
+          </div>
         </div>
+
       </div>
     </div>
+
     <% } %>
   </div>
 

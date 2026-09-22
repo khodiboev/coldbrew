@@ -4,6 +4,7 @@ import memberController from "./controllers/member.controller";
 import uploader from "./libs/utils/uploader";
 import productController from "./controllers/product.controller";
 import orderController from "./controllers/order.controller";
+import contentController from "./controllers/content.controller";
 
 /** Member */
 router.get("/member/restaurant", memberController.getRestaurant);
@@ -72,5 +73,13 @@ router.post(
   memberController.verifyAuth,
   orderController.updateOrder,
 );
+
+/** Content (Help page: Terms & FAQ) */
+
+// Help sahifasidagi Terms & Conditions matnlarini olish uchun route.
+router.get("/content/terms", contentController.getTerms);
+
+// Help sahifasidagi FAQ (savol-javoblar) ro'yxatini olish uchun route.
+router.get("/content/faqs", contentController.getFaqs);
 
 export default router;

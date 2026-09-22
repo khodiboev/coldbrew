@@ -1,0 +1,109 @@
+<%- include('includes/header') %>
+
+<link rel="stylesheet" type="text/css" href="/css/content.css" />
+
+<body>
+  <div class="content-page-container">
+
+    <!-- NAV -->
+    <div class="navigation-menu">
+      <ul class="nav justify-content-center">
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/product/all">Menu</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/user/all">Users</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/admin/content">Content</a>
+        </li>
+        <li class="nav-item" onclick="return confirm('Do you want to logout?')">
+          <a class="nav-link" href="/admin/logout">Logout</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="content-frame">
+      <div class="board">
+
+        <!-- Header -->
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-label">📄 Content Management</div>
+            <div class="page-title">Help Page Content</div>
+            <div class="page-sub">Manage the Terms & Conditions and FAQ shown to customers</div>
+          </div>
+        </div>
+
+        <!-- TERMS -->
+        <div class="content-card">
+          <div class="content-card-header">
+            <span class="content-card-title">📜 Terms &amp; Conditions</span>
+            <span class="content-count"><%= terms.length %> items</span>
+          </div>
+
+          <div class="content-list" id="terms-list">
+            <% terms.forEach(function (term) { %>
+            <div class="content-row" data-id="<%= term._id %>">
+              <span class="drag-order"><%= term.termOrder %></span>
+              <input type="text" class="content-text-input term-text-input" value="<%= term.termText %>" />
+              <div class="content-row-actions">
+                <button class="btn-row btn-save-term" type="button">💾 Save</button>
+                <button class="btn-row btn-delete-term" type="button">🗑️</button>
+              </div>
+            </div>
+            <% }) %>
+            <% if (!terms.length) { %>
+            <div class="content-empty">No terms added yet.</div>
+            <% } %>
+          </div>
+
+          <div class="content-add-row">
+            <input type="text" id="new-term-text" placeholder="Add a new term..." />
+            <button id="add-term-btn" class="btn-add" type="button">+ Add Term</button>
+          </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="content-card">
+          <div class="content-card-header">
+            <span class="content-card-title">❓ Frequently Asked Questions</span>
+            <span class="content-count"><%= faqs.length %> items</span>
+          </div>
+
+          <div class="content-list" id="faq-list">
+            <% faqs.forEach(function (faq) { %>
+            <div class="content-row faq-row" data-id="<%= faq._id %>">
+              <div class="faq-row-fields">
+                <input type="text" class="content-text-input faq-question-input" placeholder="Question" value="<%= faq.faqQuestion %>" />
+                <textarea class="content-textarea faq-answer-input" placeholder="Answer"><%= faq.faqAnswer %></textarea>
+              </div>
+              <div class="content-row-actions">
+                <button class="btn-row btn-save-faq" type="button">💾 Save</button>
+                <button class="btn-row btn-delete-faq" type="button">🗑️</button>
+              </div>
+            </div>
+            <% }) %>
+            <% if (!faqs.length) { %>
+            <div class="content-empty">No FAQ items added yet.</div>
+            <% } %>
+          </div>
+
+          <div class="content-add-row faq-add-row">
+            <input type="text" id="new-faq-question" placeholder="New question..." />
+            <textarea id="new-faq-answer" placeholder="Answer..."></textarea>
+            <button id="add-faq-btn" class="btn-add" type="button">+ Add FAQ</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="/js/content.js"></script>
+</body>
+
+<%- include('includes/footer') %>
