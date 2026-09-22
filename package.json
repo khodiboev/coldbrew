@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node dist/server.js",
     "start:dev": "nodemon --exec ts-node src/server.ts",
-    "build": "tsc && npm run copy:assets",
+    "build": "tsc && node extra.js",
+    "start:prod": "NODE_ENV=production node dist/server.js",
     "copy:assets": "mkdir -p dist/views dist/public && cp -r src/views/. dist/views/ && cp -r src/public/. dist/public/",
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed:users": "ts-node src/seedUsers.ts",
@@ -24,6 +25,7 @@
     "express": "^4.17.3",
     "express-rate-limit": "^8.6.1",
     "express-session": "^1.17.3",
+    "fs-extra": "^11.1.1",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4",
