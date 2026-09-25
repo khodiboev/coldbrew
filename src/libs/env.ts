@@ -35,6 +35,11 @@ export function validateEnv(): void {
 
 export const isProduction = () => process.env.NODE_ENV === "production";
 
+export const isSecureCookie = (): boolean => process.env.COOKIE_SECURE === "true";
+
+export const cookieSameSite = (): "strict" | "lax" =>
+  isSecureCookie() ? "strict" : "lax";
+
 export const getAllowedOrigins = (): string[] =>
   (process.env.ALLOWED_ORIGINS ?? "")
     .split(",")

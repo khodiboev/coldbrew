@@ -11,7 +11,7 @@ import {
 import Errors, { HttpCode, Message } from "../libs/Errors";
 import AuthService from "../models/Auth.service";
 import { AUTH_TIMER } from "../libs/config";
-import { isProduction } from "../libs/env";
+import { isSecureCookie, cookieSameSite } from "../libs/env";
 
 const memberService = new MemberService();
 const authService = new AuthService();
@@ -49,14 +49,14 @@ memberController.signup = async (req: Request, res: Response) => {
     res.cookie("accessToken", token, {
       maxAge: AUTH_TIMER * 3600 * 1000,
       httpOnly: true,
-      secure: isProduction(),
-      sameSite: isProduction() ? "strict" : "lax",
+      secure: isSecureCookie(),
+      sameSite: cookieSameSite(),
     });
     res.cookie("loggedIn", "1", {
       maxAge: AUTH_TIMER * 3600 * 1000,
       httpOnly: false,
-      secure: isProduction(),
-      sameSite: isProduction() ? "strict" : "lax",
+      secure: isSecureCookie(),
+      sameSite: cookieSameSite(),
     });
 
     res.status(HttpCode.CREATED).json({ member: result, accessToken: token });
@@ -80,14 +80,14 @@ memberController.login = async (req: Request, res: Response) => {
     res.cookie("accessToken", token, {
       maxAge: AUTH_TIMER * 3600 * 1000,
       httpOnly: true,
-      secure: isProduction(),
-      sameSite: isProduction() ? "strict" : "lax",
+      secure: isSecureCookie(),
+      sameSite: cookieSameSite(),
     });
     res.cookie("loggedIn", "1", {
       maxAge: AUTH_TIMER * 3600 * 1000,
       httpOnly: false,
-      secure: isProduction(),
-      sameSite: isProduction() ? "strict" : "lax",
+      secure: isSecureCookie(),
+      sameSite: cookieSameSite(),
     });
 
     res.status(HttpCode.OK).json({ member: result, accessToken: token });
@@ -104,9 +104,17 @@ memberController.login = async (req: Request, res: Response) => {
 // memberController objectining logout methodi, req va res parametrlari mavjud.
 memberController.logout = (req: ExtendedRequest, res: Response) => {
   try {
-    // "accessToken" va "loggedIn" cookielarni maxAge ni 0 ga o'rnatish orqali o'chirish.
-    res.cookie("accessToken", null, { maxAge: 0, httpOnly: true });
-    res.cookie("loggedIn", null, { maxAge: 0, httpOnly: false });
+    // "accessToken" va "loggedIn" cookielarni login/signup dagi bilan bir xil options bilan tozalash.
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: isSecureCookie(),
+      sameSite: cookieSameSite(),
+    });
+    res.clearCookie("loggedIn", {
+      httpOnly: false,
+      secure: isSecureCookie(),
+      sameSite: cookieSameSite(),
+    });
     res.status(HttpCode.OK).json({ logout: true });
   } catch (err) {
     console.log("Error, logout:", err);

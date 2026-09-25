@@ -1,6 +1,4 @@
-#!/bin/bash
-
-# PRODUCTION
+pm
 git reset --hard
 git checkout master
 git pull origin master

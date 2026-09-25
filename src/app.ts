@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { MORGAN_FORMAT } from "./libs/config";
-import { isProduction, getAllowedOrigins } from "./libs/env";
+import { isProduction, isSecureCookie, cookieSameSite, getAllowedOrigins } from "./libs/env";
 import { Server as SocketIOServer } from "socket.io";
 import http from "http";  
 
@@ -81,8 +81,8 @@ app.use(
     cookie: {
       maxAge: 1000 * 3600 * 6, //6h
       httpOnly: true,
-      secure: isProduction(),
-      sameSite: isProduction() ? "strict" : "lax",
+      secure: isSecureCookie(),
+      sameSite: cookieSameSite(),
     },
     store: store,
     resave: true,
